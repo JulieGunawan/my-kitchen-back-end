@@ -46,7 +46,7 @@ app.post('/api/articles/:name/comments',(req, res) => {
     const { postedBy, text } = req.body;
 
     const article = articlesInfo.find(a => a.name === name);
-
+    
     if (article) {
         article.comments.push({postedBy, text});
         res.send(article.comments);

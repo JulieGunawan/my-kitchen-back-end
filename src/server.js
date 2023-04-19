@@ -1,5 +1,7 @@
 import express from 'express';
-
+import {MongoClient} from 'mongodb'; //this is used to connect to DB
+/*
+This is inserted into mongoDB react-blog-vote
 let articlesInfo = [{
         name:'first-blog',
         upvotes:0,
@@ -13,10 +15,22 @@ let articlesInfo = [{
         upvotes:0,
         comments:[],
 }]
+*/
 
 const app = express();
 app.use(express.json());
 
+app.get('/api/articles/:name', async(req,res) =>{
+    const { name } = req.params;
+    const client = new MongoClient('mongodb://127.0.0.1:27017');
+    await client.connect();
+
+    const db=client.db('react-blog-vote'); //use react-blog-vote db
+
+    const article=await db.collection('articles').findOne({name});
+
+    res.json(article);
+});
 /*
 app.post('/hello',(req, res) => {
     console.log(req.body);

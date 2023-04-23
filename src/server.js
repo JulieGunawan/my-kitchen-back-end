@@ -1,5 +1,5 @@
 import express from 'express';
-import { MongoClient } from 'mongodb'; //this is used to connect to DB
+import {voteDb, connectDB} from './dbConnect.js';//this is used to connect to DB
 /*
 This is inserted into mongoDB react-blog-vote
 let articlesInfo = [{
@@ -22,12 +22,8 @@ app.use(express.json());
 
 app.get('/api/articles/:name', async(req,res) =>{
     const { name } = req.params;
-    const client = new MongoClient('mongodb://127.0.0.1:27017');
-    await client.connect();
-
-    const db=client.db('react-blog-vote'); //use react-blog-vote db
-
-    const article=await db.collection('articles').findOne({name});
+    
+    const article=await voteDb.collection('articles').findOne({name});
 
     res.json(article);
 });
@@ -46,14 +42,12 @@ app.get('/hello/:name',(req,res) =>{
 app.put('/api/articles/:name/upvote', async(req,res)=>{
     const { name }=req.params;
     //const article = articlesInfo.find(a => a.name === name);
-    const client = new MongoClient('mongodb://127.0.0.1:27017');
-    await client.connect();
-    const db = client.db('react-blog-vote');
-    await db.collection('articles').updateOne({name}, {
+   
+    await voteDb.collection('articles').updateOne({name}, {
         $inc: { upvotes: 1},
     });
 
-    const article = await db.collection('articles').findOne({name});
+    const article = await voteDb.collection('articles').findOne({name});
 
     if (article) {
        // article.upvotes +=1;
@@ -64,21 +58,33 @@ app.put('/api/articles/:name/upvote', async(req,res)=>{
     
 });
 
-app.post('/api/articles/:name/comments',(req, res) => {
+app.post('/api/articles/:name/comments', async (req, res) => {
     const { name } = req.params;
     const { postedBy, text } = req.body;
 
-    const article = articlesInfo.find(a => a.name === name);
+    //const article = articlesInfo.find(a => a.name === name);
     
+    await voteDb.collection('articles').updateOne({name},{
+        $push:{ comments: {postedBy, text} }
+    });
+    const article = await db.collection('articles').findOne({name});
+
     if (article) {
-        article.comments.push({postedBy, text});
+       // article.comments.push({postedBy, text});
         res.send(article.comments);
     } else {
         res.send('Article does not exist!');
     }
 });
 
-app.listen(8000, ()=>{
-    console.log('Server is listening on port 8000');
+connectDB(() => {
+
+    console.log('Succesfully connected to vote DB');
+    app.listen(8000, ()=>{
+        console.log('Server is listening on port 8000');
+    });
+
 });
+
+
 

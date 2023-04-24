@@ -1,5 +1,12 @@
 import express from 'express';
+import path from 'path';
 import {voteDb, connectDB} from './dbConnect.js';//this is used to connect to DB
+import 'dotenv/config';
+
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /*
 This is inserted into mongoDB react-blog-vote
 let articlesInfo = [{
@@ -19,6 +26,11 @@ let articlesInfo = [{
 
 const app = express();
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../build')));
+
+app.get(/^(?!\/api).+/,(req, res) => {
+    res.sendFile(path.join(__dirname,'../build/index.html'));
+})
 
 app.get('/api/articles/:name', async(req,res) =>{
     const { name } = req.params;
@@ -50,8 +62,9 @@ app.put('/api/articles/:name/upvote', async(req,res)=>{
     const article = await voteDb.collection('articles').findOne({name});
 
     if (article) {
+        res.json(article);
        // article.upvotes +=1;
-        res.send(`The ${name} article now has ${article.upvotes} upvotes`);
+        //res.send(`The ${name} article now has ${article.upvotes} upvotes`);
     } else {
         res.send('That article doesn\'t exist' );
     }
@@ -77,11 +90,13 @@ app.post('/api/articles/:name/comments', async (req, res) => {
     }
 });
 
+const PORT=process.env.PORT || 8000;
+
 connectDB(() => {
 
     console.log('Succesfully connected to vote DB');
-    app.listen(8000, ()=>{
-        console.log('Server is listening on port 8000');
+    app.listen(PORT, ()=>{
+        console.log('Server is listening on port ' + PORT);
     });
 
 });

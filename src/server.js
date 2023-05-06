@@ -28,6 +28,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../build')));
 
+
+//if a req isn't our api route, add this
 app.get(/^(?!\/api).+/,(req, res) => {
     res.sendFile(path.join(__dirname,'../build/index.html'));
 })
